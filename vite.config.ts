@@ -4,8 +4,6 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
-  const isStandalone = process.env.VITE_STANDALONE === '1';
-
   return {
     base: './',
     plugins: [
@@ -33,20 +31,6 @@ export default defineConfig(() => {
       minify: 'esbuild',
       target: 'es2020',
       sourcemap: false,
-      ...(isStandalone
-        ? {
-            outDir: 'dist-standalone',
-            copyPublicDir: false,
-            cssCodeSplit: false,
-            assetsInlineLimit: 100_000_000,
-            rollupOptions: {
-              output: {
-                format: 'iife',
-                inlineDynamicImports: true,
-              },
-            },
-          }
-        : {}),
     },
     server: {
       port: 3000,

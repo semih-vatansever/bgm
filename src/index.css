@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@source not "../public/bach.html";
 @source not "../dist";
 
 @layer base {

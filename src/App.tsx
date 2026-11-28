@@ -2972,25 +2972,8 @@ export default function App() {
       };
     };
 
-  const handleDownloadHtml = () => {
-    const link = document.createElement('a');
-    link.href = './bach.html';
-    link.download = 'bach.html';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const handleIdentitySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleaned = normalizeTurkish(identityInput);
-    if (cleaned === 'html' || cleaned === 'indir' || cleaned === 'bach.html') {
-      setPromptWarning(null);
-      setIdentityInput('');
-      handleDownloadHtml();
-      return;
-    }
-
     const res = resolveIdentityInput(identityInput);
 
     if (res.type === 'admin') {
@@ -3051,19 +3034,12 @@ export default function App() {
     handleReturnHome();
   };
 
-  const isStandaloneFile =
-    typeof window !== 'undefined' &&
-    Boolean(
-      (window as unknown as { __BACH_STANDALONE__?: boolean })
-        .__BACH_STANDALONE__ || window.location.protocol === 'file:'
-    );
-
   return (
     <div className="relative min-h-[100dvh] flex flex-col justify-between selection:bg-stone-800 selection:text-stone-100">
       {/* Subtle Boğaziçi University South Campus Illustration */}
       <BogaziciIllustration />
 
-      {/* Minimal Top-Left "bach" Brand Mark & Standalone HTML Download */}
+      {/* Minimal Top-Left "bach" Brand Mark */}
       <header className="relative z-20 flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4">
         <button
           type="button"
@@ -3072,33 +3048,6 @@ export default function App() {
         >
           bach
         </button>
-
-        {!isStandaloneFile && (
-          <a
-            href="./bach.html"
-            download="bach.html"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300/90 bg-[#faf8f4]/90 px-3 py-1.5 text-xs font-medium text-stone-700 hover:border-stone-500 hover:bg-white hover:text-stone-950 shadow-2xs transition-all"
-            title="Tüm uygulamayı tek bir bağımsız HTML dosyası olarak indir"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" x2="12" y1="15" y2="3" />
-            </svg>
-            <span>bach.html indir</span>
-          </a>
-        )}
       </header>
 
       {/* Main Content Area */}

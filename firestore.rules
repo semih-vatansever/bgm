@@ -147,6 +147,21 @@ service cloud.firestore {
         && isValidOptionalTimeField(data, 'updatedAtIso');
     }
 
+    function isValidWeeklyScheduleSlot(data) {
+      return data.keys().hasAll(['scope', 'weekNumber', 'dayIndex', 'startHour', 'courseId', 'subject', 'instructorId', 'instructorName', 'updatedAt'])
+        && data.keys().hasOnly(['scope', 'weekNumber', 'dayIndex', 'startHour', 'courseId', 'subject', 'instructorId', 'instructorName', 'updatedAt', 'updatedAtIso'])
+        && data.scope is string && data.scope in ['online_10']
+        && data.weekNumber is number && data.weekNumber >= 1 && data.weekNumber <= 52
+        && data.dayIndex is number && data.dayIndex >= 0 && data.dayIndex <= 6
+        && data.startHour is number && data.startHour >= 10 && data.startHour <= 21
+        && data.courseId is string && data.courseId.size() >= 1 && data.courseId.size() <= 100
+        && data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 80
+        && data.instructorId is string && data.instructorId.size() >= 1 && data.instructorId.size() <= 100
+        && data.instructorName is string && data.instructorName.size() >= 1 && data.instructorName.size() <= 120
+        && isValidTimeField(data.updatedAt)
+        && isValidOptionalTimeField(data, 'updatedAtIso');
+    }
+
     match /test/connection {
       allow get: if true;
     }
@@ -225,6 +240,22 @@ service cloud.firestore {
       allow list: if resource.data.weekNumber >= 1;
       allow create, update: if isValidId(assignmentId) && isValidCoordinatorAssignment(incoming());
       allow delete: if isValidId(assignmentId);
+    }
+
+    match /weekly_schedules/{slotId} {
+      allow get: if isValidId(slotId);
+      allow list: if resource.data.scope == 'online_10'
+        && resource.data.weekNumber >= 1
+        && resource.data.weekNumber <= 52;
+      allow create: if isValidId(slotId) && isValidWeeklyScheduleSlot(incoming());
+      allow update: if isValidId(slotId)
+        && isValidWeeklyScheduleSlot(incoming())
+        && incoming().scope == resource.data.scope
+        && incoming().weekNumber == resource.data.weekNumber
+        && incoming().dayIndex == resource.data.dayIndex
+        && incoming().startHour == resource.data.startHour
+        && incoming().instructorId == resource.data.instructorId;
+      allow delete: if isValidId(slotId);
     }
   }
 }

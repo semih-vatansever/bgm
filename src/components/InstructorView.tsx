@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useMemo, useRef } from 'react';
 import {
   RotateCcw,
   Sparkles,
   ArrowLeft,
   BookOpen,
+  CalendarDays,
   CheckSquare,
   UserPlus,
   X,
@@ -40,6 +41,13 @@ import {
   shouldShowYuzyuzeHolidayMessage,
   SimilarStudentCandidate,
 } from '../utils/enigmaLogic';
+import { isOnlineGrade10Course } from '../utils/scheduleLogic';
+
+const Schedule10OnlineView = lazy(() =>
+  import('./Schedule10OnlineView').then(m => ({
+    default: m.Schedule10OnlineView,
+  }))
+);
 
 export interface AttendanceConflictNotice {
   docId: string;
@@ -166,6 +174,16 @@ export const InstructorView: React.FC<InstructorViewProps> = ({
 
   const activeCourse =
     instructorCourses.find(c => c.id === selectedCourseId) || instructorCourses[0];
+
+  // Weekly schedule feature is currently enabled ONLY for 10th-grade online courses
+  const canUseOnlineGrade10Schedule = isOnlineGrade10Course(activeCourse);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+
+  useEffect(() => {
+    if (!canUseOnlineGrade10Schedule && isScheduleOpen) {
+      setIsScheduleOpen(false);
+    }
+  }, [canUseOnlineGrade10Schedule, isScheduleOpen]);
 
   useEffect(() => {
     if (activeCourse?.id && onActiveCourseChange) {
@@ -338,6 +356,7 @@ export const InstructorView: React.FC<InstructorViewProps> = ({
 
   const attemptNavigationOrExit = (action: () => void) => {
     if (
+      isScheduleOpen ||
       isCurrentCourseHolidayWeek ||
       (courseStudentIds.length === 0 && sessionUnlistedReports.length === 0)
     ) {
@@ -677,8 +696,26 @@ export const InstructorView: React.FC<InstructorViewProps> = ({
           </div>
         </div>
 
-        {/* Week selector */}
-        <div className="flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200/70">
+        {/* Week selector & 10th-grade online schedule button */}
+        <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200/70">
+          {canUseOnlineGrade10Schedule && (
+            <button
+              type="button"
+              data-testid="open-schedule-btn"
+              onClick={() =>
+                onGuardedNavigate(() => setIsScheduleOpen(prev => !prev))
+              }
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                isScheduleOpen
+                  ? 'border-stone-900 bg-stone-900 text-stone-100 shadow-xs'
+                  : 'border-stone-300 bg-white/90 text-stone-800 hover:border-stone-600 hover:bg-white shadow-2xs'
+              }`}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span>{isScheduleOpen ? 'yoklamaya dön' : 'ders programı'}</span>
+            </button>
+          )}
+
           <div className="flex items-center gap-1.5 text-xs text-stone-600">
             <label htmlFor="week-select" className="text-stone-500">
               hafta:
@@ -803,6 +840,23 @@ export const InstructorView: React.FC<InstructorViewProps> = ({
         </div>
       )}
 
+      {/* 10th-Grade Online Weekly Class Schedule (Lazy-loaded, zero cost for other instructors) */}
+      {canUseOnlineGrade10Schedule && isScheduleOpen && activeCourse ? (
+        <Suspense
+          fallback={
+            <div className="rounded-2xl border border-stone-300/80 bg-white/80 py-14 text-center text-xs text-stone-500">
+              ders programı yükleniyor...
+            </div>
+          }
+        >
+          <Schedule10OnlineView
+            instructor={instructor}
+            course={activeCourse}
+            selectedWeek={selectedWeek}
+          />
+        </Suspense>
+      ) : (
+        <>
       {/* Yüz Yüze Week 4 & Week 5 Holiday Message OR Session Attendance Area */}
       {isCurrentCourseHolidayWeek ? (
         <div
@@ -1331,6 +1385,8 @@ export const InstructorView: React.FC<InstructorViewProps> = ({
             yoklama listesini açmak için yukarıdaki dört seçenekten birini (1. ders, 2. ders, ek dersler veya ders yapmadım) seç.
           </p>
         </div>
+      )}
+        </>
       )}
         </>
       )}

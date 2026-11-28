@@ -325,6 +325,57 @@
         }
       },
       "required": ["weekNumber", "updatedAt"]
+    },
+    "WeeklyScheduleSlot": {
+      "title": "WeeklyScheduleSlot",
+      "description": "A single 1-hour weekly class schedule slot claimed by an online 10th-grade instructor.",
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": ["online_10"],
+          "description": "Schedule scope identifier (currently online 10th grade)",
+          "maxLength": 40
+        },
+        "weekNumber": {
+          "type": "number",
+          "description": "Academic week number (1-52)"
+        },
+        "dayIndex": {
+          "type": "number",
+          "description": "Day of week index (0=Monday through 6=Sunday)"
+        },
+        "startHour": {
+          "type": "number",
+          "description": "Slot starting hour in 24h format (10 through 21, representing 10-11 to 21-22)"
+        },
+        "courseId": {
+          "type": "string",
+          "description": "Course identifier (e.g. online-10a-mat)",
+          "maxLength": 100
+        },
+        "subject": {
+          "type": "string",
+          "description": "Course subject name (e.g. matematik)",
+          "maxLength": 80
+        },
+        "instructorId": {
+          "type": "string",
+          "description": "Instructor identifier",
+          "maxLength": 100
+        },
+        "instructorName": {
+          "type": "string",
+          "description": "Instructor full name",
+          "maxLength": 120
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Server timestamp or ISO timestamp of last update",
+          "maxLength": 64
+        }
+      },
+      "required": ["scope", "weekNumber", "dayIndex", "startHour", "courseId", "subject", "instructorId", "instructorName", "updatedAt"]
     }
   },
   "firestore": {
@@ -367,6 +418,10 @@
     "/coordinator_assignments/{assignmentId}": {
       "schema": "CoordinatorAssignment",
       "description": "Collection of weekly coordinator assignments (w01, w02, ...)."
+    },
+    "/weekly_schedules/{slotId}": {
+      "schema": "WeeklyScheduleSlot",
+      "description": "Collection of 1-hour weekly class schedule slots claimed by 10th-grade online instructors."
     }
   }
 }
